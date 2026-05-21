@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlashMind — Study Flashcard App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0A1628;
+      --blue:   #1A3A6B;
+      --accent: #C9A84C;
+      --gold2:  #E8C97A;
+      --white:  #F8F5EE;
+      --card:   #111D30;
+      --muted:  #8899AA;
+      --danger: #C94C4C;
+      --green:  #4CA87A;
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Background subtle pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(26,58,107,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #root { position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 40px;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,22,40,0.85);
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+    .header-stats {
+      display: flex;
+      gap: 24px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .header-stats strong { color: var(--accent); font-size: 1.1rem; }
+
+    /* ── MAIN LAYOUT ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      background: rgba(255,255,255,0.04);
+      padding: 6px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+    .tab {
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--muted);
+    }
+    .tab.active {
+      background: var(--accent);
+      color: var(--navy);
+      font-weight: 600;
+    }
+    .tab:hover:not(.active) { color: var(--white); }
+
+    /* ── FORM ── */
+    .form-card {
+      background: var(--card);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 32px;
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 220px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    input, textarea, select {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 16px;
+      transition: border-color 0.2s;
+      outline: none;
+      resize: vertical;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+    select option { background: var(--card); }
+    textarea { min-height: 90px; }
+    .form-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 12px 28px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary { background: var(--accent); color: var(--navy); }
+    .btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover { color: var(--white); border-color: var(--white); }
+    .btn-danger { background: rgba(201,76,76,0.15); color: var(--danger); border: 1px solid rgba(201,76,76,0.3); }
+    .btn-danger:hover { background: rgba(201,76,76,0.25); }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; border-radius: 8px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-bar input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .filter-bar select { width: auto; min-width: 140px; }
+    .count-badge {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .count-badge strong { color: var(--accent); }
+
+    /* ── CARD GRID ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── FLASHCARD ── */
+    .flashcard {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .flashcard:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      border-color: rgba(201,168,76,0.25);
+    }
+    .card-category {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+    }
+    .cat-general  { background: rgba(201,168,76,0.15); color: var(--accent); }
+    .cat-science  { background: rgba(76,168,122,0.15); color: var(--green); }
+    .cat-history  { background: rgba(168,100,76,0.15); color: #E8A07A; }
+    .cat-tech     { background: rgba(76,120,201,0.15); color: #7AAAE8; }
+    .cat-language { background: rgba(140,76,201,0.15); color: #C07AE8; }
+
+    .card-question {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    /* Flip reveal */
+    .card-answer-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      transition: opacity 0.2s;
+    }
+    .card-answer-toggle:hover { opacity: 0.8; }
+    .card-answer {
+      font-size: 0.9rem;
+      color: #AABBCC;
+      line-height: 1.6;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+      animation: slideDown 0.2s ease;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── EDIT INLINE ── */
+    .edit-form { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── STUDY MODE ── */
+    .study-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+    }
+    .study-progress {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .study-progress span { color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+    .study-card {
+      width: 100%;
+      max-width: 580px;
+      min-height: 320px;
+      background: var(--card);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 24px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .study-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .study-question {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.4;
+      margin-bottom: 28px;
+    }
+    .study-answer {
+      font-size: 1rem;
+      color: #AABBCC;
+      line-height: 1.7;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border-left: 3px solid var(--accent);
+      width: 100%;
+      animation: slideDown 0.25s ease;
+    }
+    .study-controls {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .study-done {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .study-done h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .study-done p { color: var(--muted); margin-bottom: 24px; }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--white); margin-bottom: 8px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--accent);
+      color: var(--navy);
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      z-index: 999;
+      animation: toastIn 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 16px 20px; }
+      .container { padding: 24px 16px; }
+      .form-card { padding: 20px; }
+      .study-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const STORAGE_KEY = 'flashmind_cards_v1';
+
+const CATEGORIES = ['General','Science','History','Tech','Language'];
+
+function getCatClass(cat) {
+  const map = { General:'cat-general', Science:'cat-science', History:'cat-history', Tech:'cat-tech', Language:'cat-language' };
+  return map[cat] || 'cat-general';
+}
+
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      // EDGE CASE: corrupted JSON in localStorage — fall back to initial
+      return stored ? JSON.parse(stored) : initial;
+    } catch(e) {
+      console.warn('FlashMind: localStorage parse error, resetting.', e);
+      return initial;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch(e) {
+      console.warn('FlashMind: could not save to localStorage (quota?)', e);
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+function Toast({ msg }) {
+  return msg ? <div className="toast">✓ {msg}</div> : null;
+}
+
+function CardItem({ card, onDelete, onUpdate, showToast }) {
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [q, setQ] = useState(card.question);
+  const [a, setA] = useState(card.answer);
+  const [cat, setCat] = useState(card.category);
+
+  function save() {
+    if (!q.trim() || !a.trim()) return;
+    onUpdate(card.id, { question: q.trim(), answer: a.trim(), category: cat });
+    setEditing(false);
+    showToast('Card updated!');
+  }
+
+  return (
+    <div className="flashcard">
+      <span className={`card-category ${getCatClass(card.category)}`}>{card.category}</span>
+
+      {!editing ? (
+        <>
+          <div className="card-question">{card.question}</div>
+          <button className="card-answer-toggle" onClick={() => setShowAnswer(p => !p)}>
+            {showAnswer ? '▲ Hide Answer' : '▼ Reveal Answer'}
+          </button>
+          {showAnswer && <div className="card-answer">{card.answer}</div>}
+          <div className="card-date">Added {new Date(card.createdAt).toLocaleDateString()}</div>
+          <div className="card-actions">
+            <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(true); setShowAnswer(false); }}>✏️ Edit</button>
+            <button className="btn btn-danger btn-sm" onClick={() => { onDelete(card.id); showToast('Card deleted'); }}>🗑 Delete</button>
+          </div>
+        </>
+      ) : (
+        <div className="edit-form">
+          <label>Question</label>
+          <input value={q} onChange={e => setQ(e.target.value)} />
+          <label>Answer</label>
+          <textarea value={a} onChange={e => setA(e.target.value)} />
+          <label>Category</label>
+          <select value={cat} onChange={e => setCat(e.target.value)}>
+            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
+          <div className="form-actions">
+            <button className="btn btn-primary btn-sm" onClick={save}>Save</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddForm({ onAdd, showToast }) {
+  const [q, setQ] = useState('');
+  const [a, setA] = useState('');
+  const [cat, setCat] = useState('General');
+
+  function submit() {
+    if (!q.trim() || !a.trim()) { showToast('Please fill both fields!'); return; }
+    onAdd({ question: q.trim(), answer: a.trim(), category: cat });
+    setQ(''); setA(''); setCat('General');
+    showToast('Card added!');
+  }
+
+  return (
+    <div className="form-card">
+      <div className="form-title">✦ Add New Flashcard</div>
+      <div className="form-row">
+        <div className="form-group" style={{flex:2}}>
+          <label>Question</label>
+          <input placeholder="What do you want to remember?" value={q} onChange={e => setQ(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && e.ctrlKey && submit()} />
+        </div>
+        <div className="form-group" style={{minWidth:140, flex:'0 0 160px'}}>
+          <label>Category</label>
+          <select value={cat} onChange={e => setCat(e.target.value)}>
+            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="form-group" style={{marginTop:12}}>
+        <label>Answer</label>
+        <textarea placeholder="The answer or explanation..." value={a} onChange={e => setA(e.target.value)} />
+      </div>
+      <div className="form-actions">
+        <button className="btn btn-primary" onClick={submit}>＋ Add Card</button>
+      </div>
+    </div>
+  );
+}
+
+function StudyMode({ cards, onBack }) {
+  const shuffled = [...cards].sort(() => Math.random() - 0.5);
+  const [idx, setIdx] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [done, setDone] = useState(false);
+
+  if (!cards.length) return (
+    <div className="empty">
+      <div className="empty-icon">📭</div>
+      <h3>No cards to study!</h3>
+      <p>Add some flashcards first.</p>
+      <button className="btn btn-primary" style={{marginTop:20}} onClick={onBack}>← Back</button>
+    </div>
+  );
+
+  if (done) return (
+    <div className="study-done">
+      <h2>🎉 Session Complete!</h2>
+      <p>You studied {shuffled.length} card{shuffled.length !== 1 ? 's' : ''}. Great work!</p>
+      <div style={{display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap'}}>
+        <button className="btn btn-primary" onClick={() => { setIdx(0); setShowAnswer(false); setDone(false); }}>↺ Study Again</button>
+        <button className="btn btn-ghost" onClick={onBack}>← Back to Cards</button>
+      </div>
+    </div>
+  );
+
+  const card = shuffled[idx];
+  function next() { setShowAnswer(false); idx + 1 >= shuffled.length ? setDone(true) : setIdx(i => i + 1); }
+
+  return (
+    <div className="study-container">
+      <div className="study-progress">Card <span>{idx + 1}</span> of <span>{shuffled.length}</span></div>
+      <div className="study-card">
+        <div className="study-label">{card.category}</div>
+        <div className="study-question">{card.question}</div>
+        {showAnswer
+          ? <div className="study-answer">{card.answer}</div>
+          : <button className="btn btn-primary" onClick={() => setShowAnswer(true)}>💡 Show Answer</button>
+        }
+      </div>
+      <div className="study-controls">
+        {showAnswer && <button className="btn btn-primary" onClick={next}>{idx + 1 >= shuffled.length ? '✓ Finish' : 'Next →'}</button>}
+        <button className="btn btn-ghost" onClick={onBack}>✕ Exit Study</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [cards, setCards] = useLocalStorage(STORAGE_KEY, []);
+  const [tab, setTab] = useState('browse');
+  const [search, setSearch] = useState('');
+  const [filterCat, setFilterCat] = useState('All');
+  const [toast, setToast] = useState('');
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2200);
+  }
+
+  function addCard(data) {
+    setCards(prev => [{
+      id: Date.now().toString(),
+      ...data,
+      createdAt: new Date().toISOString(),
+    }, ...prev]);
+  }
+
+  function deleteCard(id) {
+    setCards(prev => prev.filter(c => c.id !== id));
+  }
+
+  function updateCard(id, data) {
+    setCards(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+  }
+
+  const filtered = cards.filter(c => {
+    const matchCat = filterCat === 'All' || c.category === filterCat;
+    const matchSearch = c.question.toLowerCase().includes(search.toLowerCase()) ||
+                        c.answer.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  return (
+    <>
+      <header className="header">
+        <div className="logo">Flash<span>Mind</span></div>
+        <div className="header-stats">
+          <div>Total <strong>{cards.length}</strong></div>
+          <div>Showing <strong>{filtered.length}</strong></div>
+        </div>
+      </header>
+
+      <div className="container">
+        <div className="tabs">
+          {['browse','study'].map(t => (
+            <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
+              {t === 'browse' ? '📚 Browse' : '🎯 Study Mode'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'study' ? (
+          <StudyMode cards={filtered} onBack={() => setTab('browse')} />
+        ) : (
+          <>
+            <AddForm onAdd={addCard} showToast={showToast} />
+
+            <div className="filter-bar">
+              <input placeholder="🔍  Search cards..." value={search} onChange={e => setSearch(e.target.value)} />
+              <select value={filterCat} onChange={e => setFilterCat(e.target.value)}>
+                <option>All</option>
+                {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <div className="count-badge"><strong>{filtered.length}</strong> card{filtered.length !== 1 ? 's' : ''}</div>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="empty">
+                <div className="empty-icon">{cards.length === 0 ? '✨' : '🔍'}</div>
+                <h3>{cards.length === 0 ? 'No flashcards yet!' : 'No cards match your search'}</h3>
+                <p>{cards.length === 0 ? 'Add your first card above to get started.' : 'Try a different search or category.'}</p>
+              </div>
+            ) : (
+              <div className="cards-grid">
+                {filtered.map(card => (
+                  <CardItem key={card.id} card={card} onDelete={deleteCard} onUpdate={updateCard} showToast={showToast} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <Toast msg={toast} />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
