@@ -1,4 +1,5 @@
-# ANSWERS.md — FlashMind Technical Assessment
+# ANSWERS.md — FlashMind — Mehmoona Chand
+
 
 ## 1. How to Run
 
