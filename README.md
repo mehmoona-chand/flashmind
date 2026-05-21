@@ -51,3 +51,4 @@ flashcard-app/
 ├── README.md       # This file
 └── ANSWERS.md      # Technical decisions and reflections
 ```
+Built for Dev Weekends Fellowship 2026 Technical Assessment.
