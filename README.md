@@ -96,7 +96,7 @@ These are pulled from `ANSWERS.md` in the repo:
 - **Corrupted-data handling** — the `useLocalStorage` hook wraps `JSON.parse` in a `try/catch`. If the stored data is malformed, the app falls back to an empty array instead of crashing to a blank white screen.
 - **Simplicity over backend** — a backend (Node + SQLite) was considered and rejected for this scope; it would add a server, installation steps, and failure points for what is fundamentally a single-user app.
 
----
+--
 
 ## 🗺️ Known Limitations
 
