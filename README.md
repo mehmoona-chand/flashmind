@@ -103,7 +103,7 @@ These are pulled from `ANSWERS.md` in the repo:
 - Search and filter are client-side only; there's no sort-order control (cards always show newest-first).
 - No spaced-repetition logic yet — a planned next step is letting users mark a card "Easy / Medium / Hard" after studying, and prioritizing harder cards on future review (similar to Anki).
 
--
+
 
 ---
 
