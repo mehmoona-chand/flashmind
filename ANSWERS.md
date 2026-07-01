@@ -90,3 +90,4 @@ The AI suggested storing each card as a separate localStorage key (e.g. `card_1`
 **What I would do with another day:**  
 Implement a basic spaced repetition system — after studying a card, the user marks it as "Easy," "Medium," or "Hard." The app would then prioritize showing hard cards more frequently and push easy cards further into the future. This is the core algorithm behind apps like Anki, and it would transform FlashMind from a simple CRUD demo into a genuinely useful learning tool. I would store a `nextReview` timestamp and `difficulty` score on each card in localStorage.
 
+
